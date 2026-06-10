@@ -251,15 +251,11 @@ FIELD_HELP = {
     "num_dependents": (
         "Number of financial dependents\n"
         "\n"
-        "\u2705\u2705  1  \u2014  low burden\n"
+        "\u2705\u2705  0   \u2014  no dependents\n"
         "\n"
-        "\u2705  2  \u2014  manageable\n"
+        "\u2705  1   \u2014  low burden\n"
         "\n"
-        "\u25cb   3  \u2014  moderate\n"
-        "\n"
-        "\u274c  4  \u2014  high burden\n"
-        "\n"
-        "\u274c\u274c  5+  \u2014  significantly reduces repayment capacity"
+        "\u274c\u274c  2+  \u2014  reduces repayment capacity"
     ),
     "checking_status": (
         "Checking account balance\n"
@@ -534,7 +530,7 @@ def load_model():
             ["unskilled resident", "unskilled non resident",
              "skilled", "high qualif/self emp/mgmt"], n,
             p=[0.20, 0.05, 0.63, 0.12]),
-        "num_dependents":  rng.integers(1, 6, n).astype(float),
+        "num_dependents":  rng.integers(0, 3, n).astype(float),
         "own_telephone":   rng.choice(["none", "yes"], n, p=[0.60, 0.40]),
         "foreign_worker":  rng.choice(["yes", "no"], n, p=[0.96, 0.04]),
     })
@@ -574,6 +570,15 @@ def load_model():
         "rent": 0.50, "for free": 0.20, "own": -0.30,
     }).astype(float)
 
+    purpose_l = X_raw["purpose"].map({
+        "education":           -0.45,   # future income potential
+        "furniture/equipment": -0.10,   # tangible asset
+        "new car":              0.05,
+        "used car":             0.15,
+        "radio/tv":             0.35,   # fast depreciation
+        "business":             0.65,   # variable returns
+    }).astype(float)
+
     # Numeric features: linear log-odds effect, centred at realistic means
     duration_l    = (X_raw["duration"].astype(float)              - 20.0) * 0.030
     amount_l      = (X_raw["credit_amount"].astype(float)         - 3500.0) * 0.000045
@@ -595,10 +600,20 @@ def load_model():
                       index=X_raw.index)
     installment_l = (X_raw["installment_commitment"].astype(float) - 2.5) * 0.28
 
+    # More dependents → higher risk (monotonically increasing, centred at 1)
+    dependents_l  = (X_raw["num_dependents"].astype(float)  - 1.0) * 0.28
+
+    # More existing credits → higher risk (over-leveraging)
+    credits_l     = (X_raw["existing_credits"].astype(float) - 1.0) * 0.30
+
+    # Longer residence → lower risk (stability signal)
+    residence_l   = (X_raw["residence_since"].astype(float)  - 2.5) * -0.24
+
     raw_logits = (
-        checking_l + savings_l + employment_l + history_l + housing_l
+        checking_l + savings_l + employment_l + history_l + housing_l + purpose_l
         + duration_l + amount_l + age_l + installment_l
-        + rng.normal(0, 0.55, n)   # irreducible noise
+        + dependents_l + credits_l + residence_l
+        + rng.normal(0, 0.28, n)   # reduced noise so every feature's signal is learnable
     )
 
     # Auto-calibrate intercept so mean bad rate ≈ 30 %
@@ -1022,8 +1037,8 @@ with col_in:
 
     num_dependents = st.select_slider(
         "Dependents",
-        options=list(range(1, 6)),
-        format_func=lambda x: "5+" if x == 5 else str(x),
+        options=[0, 1, 2],
+        format_func=lambda x: "2+" if x == 2 else str(x),
         value=1,
         help=FIELD_HELP["num_dependents"],
     )
