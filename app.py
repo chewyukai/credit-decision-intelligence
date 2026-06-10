@@ -1469,7 +1469,7 @@ st.markdown(
     'text-transform:uppercase;color:rgba(148,163,184,0.65);margin-bottom:0.3rem">'
     'Visual Demo  ·  Applicant Pipeline</div>'
     '<div style="font-size:0.74rem;color:#475569;margin-bottom:0.7rem">'
-    'Eight synthetic applicants illustrating distinct risk scenarios. '
+    'Twenty-one synthetic applicants illustrating distinct risk scenarios. '
     'Hover a row to preview · click to lock. Static — no API calls.</div>',
     unsafe_allow_html=True,
 )
