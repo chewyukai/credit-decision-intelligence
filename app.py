@@ -1,5 +1,5 @@
 """
-Prism — Credit Decision Intelligence
+Credit Decision Intelligence
 All primary UI elements visible above the fold.
 """
 
@@ -26,7 +26,7 @@ load_dotenv()   # reads .env in the project directory (local dev only)
 
 # ── Page config (must be first Streamlit call) ────────────────────────────────
 st.set_page_config(
-    page_title="Prism — Credit Decision Intelligence",
+    page_title="Credit Decision Intelligence",
     page_icon="◈",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -115,6 +115,13 @@ st.markdown("""
       color: rgba(148,163,184,0.6) !important;
   }
 
+  /* ── Ghost placeholder animation ─────────────────────── */
+  @keyframes gp{0%,100%{opacity:.55}50%{opacity:.3}}
+  .gbar{animation:gp 2.6s ease-in-out infinite;border-radius:2px}
+  .gred{background:rgba(239,68,68,0.28)}
+  .ggrn{background:rgba(34,197,94,0.28)}
+  .gneu{background:rgba(148,163,184,0.15)}
+
   /* ── Button ─────────────────────────────────────────────────── */
   .stButton > button { padding: 0.35rem 0.75rem !important; font-size: 0.78rem !important; }
 </style>
@@ -179,92 +186,154 @@ USER_VISIBLE_FEATURES = {
 # ── Field descriptions ────────────────────────────────────────────────────────
 
 FIELD_HELP = {
-    # ── Sliders ──────────────────────────────────────────────────────────────
     "duration": (
         "Loan repayment period\n"
-        "↑ Longer → higher risk\n"
-        "• Risk amplifies past retirement age 65"
+        "\n"
+        "\u2191 Longer \u2192 higher risk\n"
+        "\n"
+        "\u2022 Risk amplifies when loan matures past retirement age 65"
     ),
     "credit_amount": (
         "Total loan size (SGD)\n"
-        "↑ Larger → higher risk\n"
-        "• Increases monthly repayment burden"
+        "\n"
+        "\u2191 Larger \u2192 higher risk\n"
+        "\n"
+        "\u2022 Increases monthly repayment burden"
     ),
     "installment_commitment": (
         "Monthly repayment as % of income\n"
-        "↑ Higher → higher risk\n"
-        "✅  1–2  ≤ 25% of income\n"
-        "❌  3–4  > 25% — high stress"
+        "\n"
+        "\u2705\u2705  1  \u2014  \u2264 15%  (very low burden)\n"
+        "\n"
+        "\u2705  2  \u2014  15\u201325%\n"
+        "\n"
+        "\u274c  3  \u2014  25\u201335%\n"
+        "\n"
+        "\u274c\u274c  4  \u2014  > 35%  (high stress)"
     ),
     "age": (
         "Non-linear risk factor\n"
-        "✅  25–55  Prime working years\n"
-        "❌  < 25   Thin credit history\n"
-        "❌  55+ long loan  Extends past retirement"
+        "\n"
+        "\u2705\u2705  30\u201350  \u2014  peak earning years\n"
+        "\n"
+        "\u2705  25\u201330 / 50\u201355  \u2014  stable\n"
+        "\n"
+        "\u274c  < 25  \u2014  thin credit history\n"
+        "\n"
+        "\u274c\u274c  55+ with long loan  \u2014  retirement exposure"
     ),
     "existing_credits": (
-        "Active credits at this bank\n"
-        "↑ More → higher risk\n"
-        "✅  1  Single obligation\n"
-        "❌  3–4  Over-leveraging risk"
+        "Active credit facilities at this bank\n"
+        "\n"
+        "\u2191 More \u2192 higher risk\n"
+        "\n"
+        "\u2705\u2705  1  \u2014  single obligation\n"
+        "\n"
+        "\u2705  2  \u2014  manageable\n"
+        "\n"
+        "\u274c  3  \u2014  elevated\n"
+        "\n"
+        "\u274c\u274c  4  \u2014  over-leveraged"
     ),
     "residence_since": (
         "Years at current address\n"
-        "↑ Longer → lower risk\n"
-        "✅  3–4 yrs  Stable\n"
-        "❌  1 yr  Recent mover"
+        "\n"
+        "\u2191 Longer \u2192 lower risk\n"
+        "\n"
+        "\u2705\u2705  4 years  \u2014  very stable\n"
+        "\n"
+        "\u2705  3 years  \u2014  stable\n"
+        "\n"
+        "\u274c  2 years  \u2014  moderate\n"
+        "\n"
+        "\u274c\u274c  1 year  \u2014  recent mover"
     ),
     "num_dependents": (
-        "Financial dependents\n"
-        "↑ More → higher risk\n"
-        "✅  1  Low burden\n"
-        "❌  2  Reduces repayment capacity"
+        "Number of financial dependents\n"
+        "\n"
+        "\u2705\u2705  1  \u2014  low burden\n"
+        "\n"
+        "\u2705  2  \u2014  manageable\n"
+        "\n"
+        "\u25cb   3  \u2014  moderate\n"
+        "\n"
+        "\u274c  4  \u2014  high burden\n"
+        "\n"
+        "\u274c\u274c  5+  \u2014  significantly reduces repayment capacity"
     ),
-    # ── Selectboxes: ✅ good / ○ neutral / ❌ bad for approval ────────────────
     "checking_status": (
-        "Account balance (Deutsche Marks)\n"
-        "✅  ≥ 200 DM   Adequate liquidity\n"
-        "✅  0–200 DM   Low positive\n"
-        "❌  < 0 DM      Overdrawn\n"
-        "❌  No account  No history"
+        "Checking account balance\n"
+        "(Values in Deutsche Marks)\n"
+        "\n"
+        "\u2705\u2705  \u2265 200 DM  \u2014  adequate liquidity\n"
+        "\n"
+        "\u2705  0\u2013200 DM  \u2014  low positive balance\n"
+        "\n"
+        "\u274c  < 0 DM  \u2014  overdrawn\n"
+        "\n"
+        "\u274c\u274c  no account  \u2014  no history available"
     ),
     "savings_status": (
-        "Savings balance (Deutsche Marks)\n"
-        "✅  ≥ 1,000 DM  Strong cushion\n"
-        "✅  500–1k DM   Adequate\n"
-        "○   100–500 DM  Modest\n"
-        "❌  < 100 DM    Minimal\n"
-        "❌  None        Unverifiable"
+        "Savings / bond balance\n"
+        "(Values in Deutsche Marks)\n"
+        "\n"
+        "\u2705\u2705  \u2265 1,000 DM  \u2014  strong cushion\n"
+        "\n"
+        "\u2705  500\u20131,000  \u2014  adequate\n"
+        "\n"
+        "\u25cb   100\u2013500  \u2014  modest\n"
+        "\n"
+        "\u274c  < 100 DM  \u2014  minimal buffer\n"
+        "\n"
+        "\u274c\u274c  none  \u2014  unverifiable"
     ),
     "employment": (
         "Time at current employer\n"
-        "✅  ≥ 7 yrs   Very stable\n"
-        "✅  4–7 yrs   Stable\n"
-        "○   1–4 yrs   Moderate\n"
-        "❌  < 1 yr    Probationary\n"
-        "❌  Unemployed  No income"
+        "\n"
+        "\u2705\u2705  \u2265 7 yrs  \u2014  very stable income\n"
+        "\n"
+        "\u2705  4\u20137 yrs  \u2014  stable\n"
+        "\n"
+        "\u25cb   1\u20134 yrs  \u2014  moderate\n"
+        "\n"
+        "\u274c  < 1 yr  \u2014  probationary\n"
+        "\n"
+        "\u274c\u274c  unemployed  \u2014  no income"
     ),
     "housing": (
-        "Living arrangement\n"
-        "✅  Own   Asset backing\n"
-        "○   Free  No cost, no asset\n"
-        "❌  Rent  Cost reduces income"
+        "Current living arrangement\n"
+        "\n"
+        "\u2705\u2705  own  \u2014  property owner, asset backing\n"
+        "\n"
+        "\u25cb   for free  \u2014  no cost, no asset\n"
+        "\n"
+        "\u274c\u274c  rent  \u2014  ongoing cost reduces income"
     ),
     "purpose": (
-        "Intended loan use\n"
-        "✅  Education  Future income potential\n"
-        "○   Furniture  Tangible asset\n"
-        "○   Car        Depreciating asset\n"
-        "❌  Radio/TV   Fast depreciation\n"
-        "❌  Business   Variable returns"
+        "Intended use of the loan\n"
+        "\n"
+        "\u2705\u2705  education  \u2014  future income potential\n"
+        "\n"
+        "\u2705  furniture  \u2014  tangible asset\n"
+        "\n"
+        "\u25cb   new / used car  \u2014  depreciating asset\n"
+        "\n"
+        "\u274c  radio / tv  \u2014  fast depreciation\n"
+        "\n"
+        "\u274c\u274c  business  \u2014  variable returns"
     ),
     "credit_history": (
-        "Repayment track record\n"
-        "✅  All paid        Fully settled\n"
-        "✅  Existing paid   On time\n"
-        "○   No credits      No history\n"
-        "❌  Delayed         Late payments\n"
-        "❌  Critical/other  External debts"
+        "Past repayment behaviour\n"
+        "\n"
+        "\u2705\u2705  all paid  \u2014  fully settled\n"
+        "\n"
+        "\u2705  existing paid  \u2014  on time\n"
+        "\n"
+        "\u25cb   no credits  \u2014  no prior history\n"
+        "\n"
+        "\u274c  delayed  \u2014  late payments\n"
+        "\n"
+        "\u274c\u274c  critical / other  \u2014  credits elsewhere"
     ),
 }
 # Compact value-level guide (shown in expander)
@@ -404,9 +473,9 @@ COMPLIANCE_RULES = [
     ),
     (
         "Bank identified in sign-off",
-        "American Express named as issuing institution in the closing",
+        "Issuing institution named in the sign-off",
         [
-            r"American Express(?:\s*\([^)]*\))?\s*(?:\(Singapore\))?\s*(?:Pte\.?\s*Ltd\.?)?",
+            r"Credit Decision Intelligence(?:\s*(?:Pte\.?\s*Ltd\.?)?)?",
         ],
         "rgba(100,160,255,0.55)",
     ),
@@ -465,7 +534,7 @@ def load_model():
             ["unskilled resident", "unskilled non resident",
              "skilled", "high qualif/self emp/mgmt"], n,
             p=[0.20, 0.05, 0.63, 0.12]),
-        "num_dependents":  rng.integers(1, 3, n).astype(float),
+        "num_dependents":  rng.integers(1, 6, n).astype(float),
         "own_telephone":   rng.choice(["none", "yes"], n, p=[0.60, 0.40]),
         "foreign_worker":  rng.choice(["yes", "no"], n, p=[0.96, 0.04]),
     })
@@ -626,7 +695,7 @@ def generate_notice(decline_reasons: list, client: OpenAI) -> str:
         for r in decline_reasons
     )
 
-    prompt = f"""You are a compliance officer at American Express (Singapore) drafting a formal Adverse Action Notice.
+    prompt = f"""You are a compliance officer drafting a formal Credit Decision Notice.
 
 The application was declined. Risk factors to address:
 {factor_bullets}
@@ -647,7 +716,7 @@ We are committed to fair lending practices in accordance with the Monetary Autho
 
 Sincerely,
 Credit Risk Review Team
-American Express (Singapore) Pte. Ltd.
+Credit Decision Intelligence
 ---"""
 
     resp = client.chat.completions.create(
@@ -763,34 +832,39 @@ def build_highlighted_html(notice: str, checks: list[dict]) -> str:
     return f"<p style='margin:0.45em 0'>{html}</p>"
 
 
-def render_checklist(checks: list[dict]) -> None:
+def render_checklist(checks: list[dict], ghost: bool = False) -> None:
     """
     Render the compliance checklist grid.
-    Accepts checks with passed=True/False (after generation)
-    or passed=None (pending — before generation).
+    ghost=True → pending pre-evaluation state with dimmed styling.
+    ghost=False + passed=None → normal pending (same visual but not wrapped).
     """
     n_pass  = sum(1 for c in checks if c["passed"] is True)
     n_total = len(checks)
     evaluated = any(c["passed"] is not None for c in checks)
 
+    opacity = "0.35" if ghost else "1"
+
     # Header + score
-    score_str = f"{n_pass}/{n_total} passed" if evaluated else "awaiting notice…"
-    bar_color = (
-        "#27ae60" if n_pass == n_total else
-        "#e67e22" if n_pass >= n_total * 0.75 else
-        "#c0392b"
-    ) if evaluated else "rgba(150,150,150,0.4)"
+    score_str = "awaiting evaluation…" if ghost else (
+        f"{n_pass}/{n_total} passed" if evaluated else "awaiting notice…"
+    )
+    bar_color = "rgba(150,150,150,0.25)" if ghost else (
+        (
+            "#27ae60" if n_pass == n_total else
+            "#e67e22" if n_pass >= n_total * 0.75 else
+            "#c0392b"
+        ) if evaluated else "rgba(150,150,150,0.4)"
+    )
 
     st.markdown(
-        "<div style='font-size:0.82rem;font-weight:700;margin:0.4rem 0 0.3rem'>"
-        "Compliance Checks</div>",
+        f"<div style='font-size:0.82rem;font-weight:700;margin:0.4rem 0 0.3rem;"
+        f"opacity:{opacity}'>Compliance Checks</div>",
         unsafe_allow_html=True,
     )
 
-    # Progress bar
-    pct = int(n_pass / n_total * 100) if evaluated else 0
+    pct = int(n_pass / n_total * 100) if (evaluated and not ghost) else 0
     st.markdown(
-        f"""<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        f"""<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;opacity:{opacity}">
           <div style="flex:1;background:rgba(150,150,150,0.2);border-radius:4px;height:5px">
             <div style="width:{pct}%;background:{bar_color};height:5px;border-radius:4px;
                         transition:width 0.4s ease"></div>
@@ -802,12 +876,13 @@ def render_checklist(checks: list[dict]) -> None:
         unsafe_allow_html=True,
     )
 
-    # 2-column grid
-    grid = "<div style='display:grid;grid-template-columns:1fr 1fr;gap:3px 10px'>"
+    grid = f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;opacity:{opacity}'>"
     for c in checks:
-        if c["passed"] is None:
-            icon, fg, border = "⬜", "rgba(150,150,150,0.7)", "rgba(150,150,150,0.3)"
-            tip = "Will be checked once the notice is generated"
+        if ghost or c["passed"] is None:
+            icon  = "&#9633;"   # hollow square — clearly pending
+            fg    = "rgba(150,150,150,0.5)"
+            border= "rgba(150,150,150,0.2)"
+            tip   = "Evaluated after notice is generated"
         elif c["passed"]:
             icon, fg = "✅", "#4caf7d"
             border = c["color"]
@@ -853,7 +928,7 @@ except Exception:
 st.markdown(
     '<div style="display:flex;align-items:center;gap:0.55rem;margin-bottom:0">'
     '<span style="font-size:1.2rem;font-weight:700;letter-spacing:-0.02em;color:#e2e8f0">'
-    '◈ Prism  ·  Credit Decision Intelligence</span>'
+    '◈ Credit Decision Intelligence</span>'
     '<span style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;'
     'text-transform:uppercase;background:rgba(245,158,11,0.12);color:#f59e0b;'
     'border:1px solid rgba(245,158,11,0.22);border-radius:3px;'
@@ -876,10 +951,10 @@ st.markdown("""
       Business Context
     </div>
     <div>
-      · MAS FAA-N16 requires specific decline reasons for every adverse credit decision — costly and unscalable when done manually<br>
-      · PDPA &amp; MAS TRM Guidelines prohibit customer financial data reaching any third-party cloud API, including commercial LLMs<br>
-      · Connecting GPT-4 directly to a credit application violates both constraints simultaneously — Prism makes this structurally impossible<br>
-      · <span style="color:#cbd5e1">Production path:</span> swap the synthetic data module for an internal warehouse connector; the privacy boundary is unchanged
+      · <span style="color:#cbd5e1">The problem:</span> Banks must explain every credit decline in specific, plain-language terms — a regulatory requirement that is slow and inconsistent to fulfil manually at scale.<br>
+      · <span style="color:#cbd5e1">The constraint:</span> Privacy regulations prohibit sending customer financial data to external AI services, ruling out a straightforward ChatGPT integration.<br>
+      · <span style="color:#cbd5e1">The solution:</span> This system sends only anonymised risk signals — not applicant data — to the AI, which uses them to draft a compliant, specific decline notice automatically.<br>
+      · <span style="color:#cbd5e1">The result:</span> A privacy-safe pipeline that produces a regulator-ready credit decision notice in seconds, without a human drafting each one from scratch.
     </div>
   </div>
 
@@ -890,10 +965,10 @@ st.markdown("""
       Technical Architecture
     </div>
     <div>
-      · Log-odds generative model — 8 features × 10–14% attribution each; retirement-exposure interaction prevents age from being trivially linear<br>
-      · SHAP TreeExplainer decomposes each prediction into anonymised feature labels; no raw applicant values cross the API boundary<br>
-      · Template prompt with <code style="font-size:0.68rem;color:#e2e8f0">[bracketed]</code> placeholders + verbatim CBS/MAS sentences prevents LLM hallucination of regulated language<br>
-      · <span style="color:#cbd5e1">7-rule semantic regex</span> validates every notice paragraph; non-compliant text is stripped before display
+      · <span style="color:#cbd5e1">Risk assessment:</span> The applicant's profile is scored by a credit risk model that identifies the likelihood of default and the factors that drove that outcome.<br>
+      · <span style="color:#cbd5e1">Explainability:</span> Each decision is broken down into its contributing factors — showing not just the score, but why. This is what makes the notice specific rather than generic.<br>
+      · <span style="color:#cbd5e1">Privacy boundary:</span> Only the risk factors are passed to the AI — never the applicant's personal details. The explanation is generated without the underlying data ever leaving the system.<br>
+      · <span style="color:#cbd5e1">Compliance guardrails:</span> The AI writes within a structured template that enforces required regulatory language. Every output is automatically validated before it is shown.
     </div>
   </div>
 
@@ -937,11 +1012,21 @@ with col_in:
         existing_credits = st.slider("Credits", 1, 4, 1,
                                      help=FIELD_HELP["existing_credits"])
     with r3b:
-        residence_since = st.slider("Yrs. Res.", 1, 4, 2,
-                                    help=FIELD_HELP["residence_since"])
+        residence_since = st.select_slider(
+            "Years of Residence",
+            options=[1, 2, 3, 4],
+            format_func=lambda x: f"{x} year" if x == 1 else f"{x} years",
+            value=2,
+            help=FIELD_HELP["residence_since"],
+        )
 
-    num_dependents = st.slider("Dependents", 1, 2, 1,
-                               help=FIELD_HELP["num_dependents"])
+    num_dependents = st.select_slider(
+        "Dependents",
+        options=list(range(1, 6)),
+        format_func=lambda x: "5+" if x == 5 else str(x),
+        value=1,
+        help=FIELD_HELP["num_dependents"],
+    )
 
     st.divider()
 
@@ -1062,7 +1147,41 @@ with col_res:
                 unsafe_allow_html=True)
 
     if r is None:
-        st.info("👈 Adjust inputs and click **Evaluate Application**")
+        st.markdown(
+            '<div style="background:rgba(100,116,139,0.08);border:1px solid rgba(100,116,139,0.18);'
+            'border-left:3px solid rgba(100,116,139,0.3);border-radius:5px;'
+            'padding:0.35rem 0.8rem;margin-bottom:0.3rem">'
+            '<span style="font-size:0.8rem;font-weight:800;color:rgba(148,163,184,0.38);'
+            'letter-spacing:0.08em;text-transform:uppercase">&#9711;  Awaiting Evaluation</span>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        st.metric("Default Probability", "\u2014 %")
+        ghost_labels = [
+            "Employment Duration", "Checking Account",
+            "Applicant Age", "Credit Amount (SGD)",
+            "Credit History", "Savings Status",
+        ]
+        ghost_vals   = [40, 25, 18, 14, -12, -9]
+        ghost_colors = [
+            (0.94, 0.27, 0.27, 0.18) if v > 0 else (0.13, 0.77, 0.37, 0.18)
+            for v in ghost_vals
+        ]
+        fig, ax = plt.subplots(figsize=(4.5, 1.85))
+        fig.patch.set_alpha(0)
+        ax.set_facecolor("none")
+        ax.barh(ghost_labels, ghost_vals, color=ghost_colors, edgecolor="none", height=0.52)
+        ax.axvline(0, color="#374151", linewidth=0.8)
+        for spine in ("top", "right", "left", "bottom"):
+            ax.spines[spine].set_visible(False)
+        ax.tick_params(axis="both", labelsize=6, colors="#475569", length=0)
+        ax.set_xlabel("share of risk attribution (%)", fontsize=6, color="#4b5563", labelpad=4)
+        ax.set_title("RISK ATTRIBUTION", fontsize=6.5, color="#64748b",
+                     fontweight="600", loc="left", pad=6)
+        fig.tight_layout(pad=0.3)
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
+        st.caption("Evaluate an application to see real risk drivers.")
     else:
         declined = r["decision"] == "DECLINED"
 
@@ -1159,7 +1278,29 @@ with col_notice:
 
     # ── Notice body ────────────────────────────────────────────────────────────
     if r is None:
-        st.info("👈 Evaluate an application to generate the notice.")
+        st.markdown(
+            '<div style="font-size:0.77rem;line-height:1.9;color:rgba(148,163,184,0.42);'
+            'border:1px solid rgba(255,255,255,0.06);border-radius:5px;'
+            'padding:0.75rem 1rem;margin-bottom:0.6rem">'
+            'Dear Applicant,<br><br>'
+            'We regret to inform you that your credit application has been declined.<br><br>'
+            '<span style="opacity:.6">\u2013 &nbsp;</span>'
+            '<span style="background:rgba(148,163,184,0.12);border-radius:3px;padding:1px 60px">&nbsp;</span><br>'
+            '<span style="opacity:.6">\u2013 &nbsp;</span>'
+            '<span style="background:rgba(148,163,184,0.12);border-radius:3px;padding:1px 45px">&nbsp;</span><br>'
+            '<span style="opacity:.6">\u2013 &nbsp;</span>'
+            '<span style="background:rgba(148,163,184,0.12);border-radius:3px;padding:1px 35px">&nbsp;</span><br><br>'
+            'You have the right to request a free copy of your credit report from '
+            '<span style="color:rgba(99,102,241,0.55)">Credit Bureau Singapore (CBS)</span>'
+            ' within 30 days of receiving this notice.<br><br>'
+            'We are committed to fair lending practices in accordance with the '
+            '<span style="color:rgba(99,102,241,0.55)">Monetary Authority of Singapore&#39;s Notice on Fair Dealing</span>.'
+            '<br><br>Sincerely,<br>Credit Risk Review Team<br>Credit Decision Intelligence'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        st.divider()
+        render_checklist(checks, ghost=True)
 
     elif r["decision"] == "APPROVED":
         st.success("Application **approved** — no adverse action notice required.")
@@ -1212,14 +1353,21 @@ with col_notice:
                 with cap_col:
                     st.caption("⚠️ Requires compliance review before sending.")
 
-    # ── Compliance checklist — always visible ──────────────────────────────────
-    st.divider()
-    render_checklist(checks)
+                st.divider()
+                render_checklist(checks)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # LIMITATIONS  —  below the fold
 # ═════════════════════════════════════════════════════════════════════════════
+
+st.markdown(
+    "<div style='text-align:center;padding:0.6rem 0 0;font-size:0.65rem;"
+    "color:rgba(148,163,184,0.28);letter-spacing:0.08em;text-transform:uppercase'>"
+    "\u2193 &nbsp; Limitations &nbsp;\u00b7&nbsp; Pipeline Demo below"
+    "</div>",
+    unsafe_allow_html=True,
+)
 
 st.markdown("<div style='margin-top:2rem'></div>", unsafe_allow_html=True)
 st.divider()
@@ -1233,7 +1381,7 @@ st.markdown("""
     ⚠ Demo — Not for Production Use
   </div>
   <div style="font-size:0.72rem;color:#64748b;font-style:italic">
-    Prism is a proof-of-concept demonstrating architecture and regulatory thinking.
+    This is a proof-of-concept demonstrating architecture and regulatory thinking.
     The items below would be addressed before any production deployment.
   </div>
 </div>
@@ -1250,7 +1398,7 @@ st.markdown("""
       · Trained on synthetic data (n=1,000) — not real credit applications<br>
       · No train/test split; model validity on held-out data is unverified<br>
       · Target variable is rule-based, not learned from actual default outcomes<br>
-      · Feature set (20 columns) is from a 1990s German dataset — not reflective of AmEx's current data universe
+      · Feature set (20 columns) is from a 1990s German dataset — not reflective of a real institution's data universe
     </div>
   </div>
 
@@ -1296,7 +1444,7 @@ st.markdown("""
 
 # ═════════════════════════════════════════════════════════════════════════════
 # VISUAL DEMO  —  Applicant Pipeline Dashboard  (no backend / no API calls)
-# Pre-defined profiles illustrating how Prism evaluates different risk profiles.
+# Pre-defined profiles illustrating how the system evaluates different risk profiles.
 # ═════════════════════════════════════════════════════════════════════════════
 
 st.markdown("<div style='margin-top:2.5rem'></div>", unsafe_allow_html=True)
@@ -1311,430 +1459,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-PIPELINE_HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  background:transparent;
-  color:#cbd5e1;
-  font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
-  font-size:12.5px;
-}
-.dashboard{
-  display:flex;flex-direction:column;
-  height:496px;
-  background:#0d0f1a;
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:8px;overflow:hidden;
-}
-.dash-header{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:9px 16px;
-  border-bottom:1px solid rgba(255,255,255,0.07);
-  background:rgba(8,9,18,0.9);
-  flex-shrink:0;
-}
-.dash-title{
-  font-size:10.5px;font-weight:700;letter-spacing:0.1em;
-  text-transform:uppercase;color:rgba(148,163,184,0.85);
-  display:flex;align-items:center;gap:8px;
-}
-.demo-pill{
-  font-size:9.5px;font-weight:700;letter-spacing:0.08em;
-  background:rgba(245,158,11,0.12);color:#f59e0b;
-  border:1px solid rgba(245,158,11,0.22);
-  border-radius:3px;padding:1px 6px;
-}
-.dash-stats{display:flex;gap:6px;font-size:10.5px}
-.stat-pill{
-  padding:2px 8px;border-radius:3px;
-  font-weight:600;letter-spacing:0.04em;font-size:10px;
-}
-.s-ok{background:rgba(22,163,74,0.12);color:#4ade80;border:1px solid rgba(22,163,74,0.2)}
-.s-no{background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.2)}
-.s-tot{background:rgba(99,102,241,0.12);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2)}
-.main-layout{
-  display:grid;grid-template-columns:1fr 310px;
-  flex:1;overflow:hidden;
-}
-.table-section{
-  display:flex;flex-direction:column;overflow:hidden;
-  border-right:1px solid rgba(255,255,255,0.06);
-}
-.col-headers{
-  display:grid;
-  grid-template-columns:92px 1fr 46px 90px 72px 82px 110px;
-  padding:0 14px;height:28px;align-items:center;
-  background:rgba(8,9,18,0.6);
-  border-bottom:1px solid rgba(255,255,255,0.05);
-  font-size:9.5px;font-weight:600;letter-spacing:0.08em;
-  text-transform:uppercase;color:rgba(100,116,139,0.75);
-  flex-shrink:0;
-}
-.table-body{overflow-y:auto;flex:1}
-.table-body::-webkit-scrollbar{width:3px}
-.table-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
-.app-row{
-  display:grid;
-  grid-template-columns:92px 1fr 46px 90px 72px 82px 110px;
-  padding:0 14px;height:46px;align-items:center;
-  cursor:pointer;
-  border-bottom:1px solid rgba(255,255,255,0.035);
-  border-left:2px solid transparent;
-  transition:background 0.1s,border-color 0.1s;
-}
-.app-row:hover{background:rgba(99,102,241,0.07)}
-.app-row.selected{background:rgba(99,102,241,0.11);border-left-color:#6366f1}
-.ref{font-family:'Courier New',monospace;font-size:10px;color:rgba(100,116,139,0.75)}
-.aname{font-weight:600;color:#e2e8f0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.asub{font-size:9.5px;color:#475569;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.risk-badge{display:inline-flex;align-items:center;gap:4px}
-.rdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.status-pill{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:2px 7px;border-radius:3px;
-  font-size:10px;font-weight:700;letter-spacing:0.04em;
-}
-.ok{background:rgba(22,163,74,0.12);color:#4ade80;border:1px solid rgba(22,163,74,0.22)}
-.no{background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.22)}
-
-/* DETAIL PANEL */
-.detail-section{
-  padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;
-  background:rgba(6,8,16,0.5);
-}
-.detail-section::-webkit-scrollbar{width:3px}
-.detail-section::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
-.placeholder{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100%;color:#334155;font-size:11.5px;text-align:center;gap:8px;
-}
-.dname{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:1px}
-.dmeta{font-size:10px;color:#475569;margin-bottom:8px}
-.dstatus{
-  display:flex;align-items:center;gap:9px;
-  padding:7px 9px;border-radius:4px;margin-bottom:6px;
-}
-.sec-label{
-  font-size:9px;font-weight:700;letter-spacing:0.1em;
-  text-transform:uppercase;color:#475569;
-  margin:8px 0 4px;
-}
-.factor-item{
-  font-size:10.5px;color:#64748b;line-height:1.65;
-  padding:1px 0 1px 10px;position:relative;
-}
-.factor-item::before{content:"›";position:absolute;left:0;color:#4f46e5;font-weight:700}
-.notice-box{
-  background:rgba(8,10,20,0.7);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:4px;padding:9px 11px;
-  font-size:10.5px;line-height:1.7;color:#64748b;
-  margin-top:4px;white-space:pre-wrap;
-}
-.notice-box em{color:#94a3b8;font-style:normal}
-.approval-box{
-  background:rgba(22,163,74,0.06);
-  border:1px solid rgba(22,163,74,0.14);
-  border-radius:4px;padding:9px 11px;
-  font-size:10.5px;line-height:1.65;color:#4ade80;
-  margin-top:4px;
-}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;margin-bottom:6px}
-.kv-item{font-size:10px;color:#334155}
-.kv-item span{color:#64748b}
-.rmeter{
-  height:3px;background:rgba(255,255,255,0.07);
-  border-radius:2px;overflow:hidden;margin:3px 0 8px;
-}
-.rfill{height:100%;border-radius:2px;transition:width 0.4s ease}
-</style>
-
-<div class="dashboard">
-  <div class="dash-header">
-    <div class="dash-title">
-      ◈ Prism  ·  Applicant Pipeline
-      <span class="demo-pill">DEMO</span>
-    </div>
-    <div class="dash-stats">
-      <span class="stat-pill s-ok">✓ 4 Approved</span>
-      <span class="stat-pill s-no">✕ 4 Declined</span>
-      <span class="stat-pill s-tot">8 Total</span>
-    </div>
-  </div>
-
-  <div class="main-layout">
-    <div class="table-section">
-      <div class="col-headers">
-        <div>Ref. No.</div><div>Applicant</div><div>Age</div>
-        <div>Amount</div><div>Duration</div><div>Risk Score</div><div>Decision</div>
-      </div>
-      <div class="table-body" id="tBody"></div>
-    </div>
-    <div class="detail-section" id="dPanel">
-      <div class="placeholder">
-        <div style="font-size:22px;opacity:0.2">◈</div>
-        <div>Hover or click a row<br>to view details</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-const DATA = [
-  {
-    id:"AP-2024-001", name:"Sarah Tan", job:"Software Engineer",
-    age:32, amt:"SGD 12,000", dur:"24 mo", risk:18.3,
-    chk:"≥ 200 DM", sav:"≥ 1,000 DM", emp:"≥ 7 years",
-    hse:"Own", hist:"Existing paid", status:"APPROVED",
-    factors:[
-      "Long-term employment (≥ 7 yrs) demonstrates income continuity",
-      "Strong savings buffer (≥ 1,000 DM) provides financial resilience",
-      "Positive checking account history confirms reliable transaction behaviour"
-    ],
-    notice: null
-  },
-  {
-    id:"AP-2024-002", name:"Marcus Lee", job:"Retired Executive",
-    age:67, amt:"SGD 15,000", dur:"60 mo", risk:89.4,
-    chk:"0–200 DM", sav:"< 100 DM", emp:"≥ 7 years",
-    hse:"Own", hist:"All paid", status:"DECLINED",
-    factors:[
-      "Retirement exposure: loan matures at age 72 — seven years past the standard threshold",
-      "Minimal savings (< 100 DM) insufficient to support a SGD 15,000 obligation",
-      "Fixed post-retirement income significantly increases long-term repayment risk"
-    ],
-    notice:`Dear Applicant,
-
-We regret to inform you that your credit application with American Express has been declined.
-
-– Your age profile, combined with the requested loan duration, indicates the loan would mature seven years past the standard retirement threshold, raising significant concerns about long-term repayment capacity under a fixed-income profile.
-– Your current savings balance suggests limited financial reserves to support this level of credit commitment over the requested period.
-
-You have the right to request a free copy of your credit report from Credit Bureau Singapore (CBS) within 30 days of receiving this notice.
-
-We are committed to fair lending practices in accordance with the Monetary Authority of Singapore's Notice on Fair Dealing.
-
-Sincerely,
-Credit Risk Review Team
-American Express (Singapore) Pte. Ltd.`
-  },
-  {
-    id:"AP-2024-003", name:"Priya Nair", job:"Secondary School Teacher",
-    age:27, amt:"SGD 6,000", dur:"24 mo", risk:31.7,
-    chk:"0–200 DM", sav:"100–500 DM", emp:"1–4 years",
-    hse:"For free", hist:"Existing paid", status:"APPROVED",
-    factors:[
-      "Public-sector employment provides stable, predictable income",
-      "Requested amount is modest and well within assessed repayment capacity",
-      "Consistent on-time repayment history demonstrates credit reliability"
-    ],
-    notice: null
-  },
-  {
-    id:"AP-2024-004", name:"Ryan Teo", job:"Junior Marketing Executive",
-    age:22, amt:"SGD 8,000", dur:"36 mo", risk:84.9,
-    chk:"No account", sav:"No known savings", emp:"< 1 year",
-    hse:"Rent", hist:"No credits", status:"DECLINED",
-    factors:[
-      "Employment tenure under one year — income stability not yet established",
-      "No checking account on record; repayment behaviour cannot be assessed",
-      "Absence of savings provides no buffer against income disruption",
-      "Rental costs reduce disposable income available for repayment"
-    ],
-    notice:`Dear Applicant,
-
-We regret to inform you that your credit application with American Express has been declined.
-
-– Your current employment tenure is under one year, indicating that income stability may not yet be fully established.
-– The absence of an active checking account at this bank means we are unable to assess your recent financial transaction behaviour and repayment patterns.
-– Your savings balance suggests limited financial reserves to support the requested credit commitment should income be disrupted.
-
-You have the right to request a free copy of your credit report from Credit Bureau Singapore (CBS) within 30 days of receiving this notice.
-
-We are committed to fair lending practices in accordance with the Monetary Authority of Singapore's Notice on Fair Dealing.
-
-Sincerely,
-Credit Risk Review Team
-American Express (Singapore) Pte. Ltd.`
-  },
-  {
-    id:"AP-2024-005", name:"Michelle Ong", job:"HR Manager",
-    age:45, amt:"SGD 10,000", dur:"36 mo", risk:22.1,
-    chk:"0–200 DM", sav:"500–1,000 DM", emp:"4–7 years",
-    hse:"Own", hist:"Existing paid", status:"APPROVED",
-    factors:[
-      "Property ownership provides tangible asset backing",
-      "Mid-career tenure at a stable institution reduces income disruption risk",
-      "Adequate savings buffer relative to the requested loan size"
-    ],
-    notice: null
-  },
-  {
-    id:"AP-2024-006", name:"Benjamin Koh", job:"Sales Director",
-    age:38, amt:"SGD 18,000", dur:"48 mo", risk:76.3,
-    chk:"< 0 DM (overdrawn)", sav:"< 100 DM", emp:"4–7 years",
-    hse:"Rent", hist:"Delayed previously", status:"DECLINED",
-    factors:[
-      "Checking account is currently overdrawn — active financial distress signal",
-      "Previous payment delays on record represent a material repayment risk",
-      "Requested amount of SGD 18,000 is high relative to the current financial profile",
-      "Minimal savings provide no buffer against income volatility common in commission roles"
-    ],
-    notice:`Dear Applicant,
-
-We regret to inform you that your credit application with American Express has been declined.
-
-– Your checking account is currently overdrawn, which raises concerns about your present financial position and capacity to service additional credit obligations.
-– Your credit history indicates previous payment delays, which is a significant factor in our assessment of repayment reliability.
-– The amount of credit requested is high relative to your assessed financial profile and current account standing.
-
-You have the right to request a free copy of your credit report from Credit Bureau Singapore (CBS) within 30 days of receiving this notice.
-
-We are committed to fair lending practices in accordance with the Monetary Authority of Singapore's Notice on Fair Dealing.
-
-Sincerely,
-Credit Risk Review Team
-American Express (Singapore) Pte. Ltd.`
-  },
-  {
-    id:"AP-2024-007", name:"Dr. Anita Singh", job:"Senior Medical Consultant",
-    age:52, amt:"SGD 5,000", dur:"12 mo", risk:10.8,
-    chk:"≥ 200 DM", sav:"≥ 1,000 DM", emp:"≥ 7 years",
-    hse:"Own", hist:"All paid", status:"APPROVED",
-    factors:[
-      "Exemplary credit history — all prior credits fully settled without delay",
-      "Highest employment stability tier combined with senior professional income",
-      "Low loan amount and short duration minimise overall exposure",
-      "Strong savings and property ownership provide multiple layers of backing"
-    ],
-    notice: null
-  },
-  {
-    id:"AP-2024-008", name:"Kevin Lim", job:"Logistics Coordinator",
-    age:35, amt:"SGD 9,000", dur:"30 mo", risk:68.7,
-    chk:"No account", sav:"< 100 DM", emp:"1–4 years",
-    hse:"Rent", hist:"No credits", status:"DECLINED",
-    factors:[
-      "No checking account on record; transaction history unavailable for assessment",
-      "Savings balance below the threshold sufficient to support this commitment",
-      "Rental costs represent an ongoing obligation reducing disposable repayment capacity",
-      "Absence of prior credit history limits ability to assess repayment behaviour"
-    ],
-    notice:`Dear Applicant,
-
-We regret to inform you that your credit application with American Express has been declined.
-
-– The absence of a checking account at this bank means we are unable to assess your financial transaction patterns or repayment behaviour.
-– Your current savings balance is below the level we consider sufficient to support the requested credit commitment, leaving limited buffer against income disruption.
-– Your housing arrangement involves an ongoing rental cost that reduces the disposable income available for loan repayment.
-
-You have the right to request a free copy of your credit report from Credit Bureau Singapore (CBS) within 30 days of receiving this notice.
-
-We are committed to fair lending practices in accordance with the Monetary Authority of Singapore's Notice on Fair Dealing.
-
-Sincerely,
-Credit Risk Review Team
-American Express (Singapore) Pte. Ltd.`
-  }
-];
-
-let lockedId = null;
-
-function riskColor(s){
-  return s < 30 ? '#4ade80' : s < 60 ? '#fb923c' : '#f87171';
-}
-
-function renderTable(){
-  document.getElementById('tBody').innerHTML = DATA.map(a => `
-    <div class="app-row" id="row-${a.id}"
-         onmouseover="show('${a.id}',false)"
-         onmouseout="onOut()"
-         onclick="lock('${a.id}')">
-      <div class="ref">${a.id}</div>
-      <div style="overflow:hidden">
-        <div class="aname">${a.name}</div>
-        <div class="asub">${a.job}</div>
-      </div>
-      <div style="font-size:12px;color:#94a3b8">${a.age}</div>
-      <div style="font-size:12px;color:#94a3b8">${a.amt}</div>
-      <div style="font-size:12px;color:#94a3b8">${a.dur}</div>
-      <div>
-        <div class="risk-badge">
-          <div class="rdot" style="background:${riskColor(a.risk)}"></div>
-          <span style="color:${riskColor(a.risk)};font-size:12px;font-weight:700">${a.risk.toFixed(1)}%</span>
-        </div>
-      </div>
-      <div>
-        <span class="status-pill ${a.status==='APPROVED'?'ok':'no'}">
-          ${a.status==='APPROVED'?'✓':'✕'} ${a.status}
-        </span>
-      </div>
-    </div>`).join('');
-}
-
-function show(id, isLocked){
-  const a = DATA.find(x=>x.id===id);
-  if(!a) return;
-  const rc = riskColor(a.risk);
-  const dec = a.status==='DECLINED';
-  document.getElementById('dPanel').innerHTML = `
-    <div class="dname">${a.name}</div>
-    <div class="dmeta">${a.job}  ·  Age ${a.age}  ·  ${a.dur}</div>
-
-    <div class="dstatus" style="background:${dec?'rgba(220,38,38,0.08)':'rgba(22,163,74,0.08)'};border:1px solid ${dec?'rgba(220,38,38,0.18)':'rgba(22,163,74,0.18)'}">
-      <span style="font-size:16px;line-height:1">${dec?'✕':'✓'}</span>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:${dec?'#f87171':'#4ade80'};letter-spacing:0.05em">${a.status}</div>
-        <div style="font-size:9.5px;color:#475569">Default probability: <strong style="color:${rc}">${a.risk.toFixed(1)}%</strong></div>
-      </div>
-    </div>
-
-    <div class="rmeter"><div class="rfill" style="width:${Math.min(a.risk,100)}%;background:${rc}"></div></div>
-
-    <div class="kv">
-      <div class="kv-item">Checking <span>${a.chk}</span></div>
-      <div class="kv-item">Savings <span>${a.sav}</span></div>
-      <div class="kv-item">Employment <span>${a.emp}</span></div>
-      <div class="kv-item">Housing <span>${a.hse}</span></div>
-    </div>
-
-    <div class="sec-label">${dec?'Decline Factors':'Approval Factors'}</div>
-    ${a.factors.map(f=>`<div class="factor-item">${f}</div>`).join('')}
-
-    ${dec ? `
-      <div class="sec-label" style="margin-top:8px">Credit Decision Notice</div>
-      <div class="notice-box">${a.notice}</div>
-    ` : `
-      <div class="approval-box" style="margin-top:8px">
-        <div style="font-weight:700;margin-bottom:3px">✓ Application Approved</div>
-        <div style="font-size:10px;opacity:0.8">No adverse action notice required. Standard approval documentation issued through primary onboarding channel.</div>
-      </div>
-    `}
-  `;
-}
-
-function lock(id){
-  lockedId = id;
-  document.querySelectorAll('.app-row').forEach(r=>r.classList.remove('selected'));
-  document.getElementById('row-'+id)?.classList.add('selected');
-  show(id, true);
-}
-
-function onOut(){
-  if(lockedId) show(lockedId, true);
-  else {
-    document.getElementById('dPanel').innerHTML =
-      '<div class="placeholder"><div style="font-size:22px;opacity:0.2">◈</div><div>Hover or click a row<br>to view details</div></div>';
-  }
-}
-
-renderTable();
-</script>
-</html>
-"""
-
-components.html(PIPELINE_HTML, height=500, scrolling=False)
+import base64 as _b64
+PIPELINE_HTML = _b64.b64decode("PCFET0NUWVBFIGh0bWw+CjxodG1sPjxoZWFkPjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij48c3R5bGU+Cip7bWFyZ2luOjA7cGFkZGluZzowO2JveC1zaXppbmc6Ym9yZGVyLWJveH0KaHRtbCxib2R5e3dpZHRoOjEwMCU7YmFja2dyb3VuZDojMGQwZjFhO2NvbG9yOiNjYmQ1ZTE7Zm9udC1mYW1pbHk6LWFwcGxlLXN5c3RlbSxCbGlua01hY1N5c3RlbUZvbnQsJ1NlZ29lIFVJJyxzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxMnB4fQojd3JhcHtiYWNrZ3JvdW5kOiMwZDBmMWE7Ym9yZGVyOjFweCBzb2xpZCByZ2JhKDI1NSwyNTUsMjU1LDAuMDgpO2JvcmRlci1yYWRpdXM6NnB4O292ZXJmbG93OmhpZGRlbn0KI2hkcntkaXNwbGF5OmZsZXg7anVzdGlmeS1jb250ZW50OnNwYWNlLWJldHdlZW47YWxpZ24taXRlbXM6Y2VudGVyO3BhZGRpbmc6OHB4IDE0cHg7YmFja2dyb3VuZDojMDYwNzEwO2JvcmRlci1ib3R0b206MXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4wNyl9CiNodHtmb250LXNpemU6MTBweDtmb250LXdlaWdodDo3MDA7bGV0dGVyLXNwYWNpbmc6LjFlbTt0ZXh0LXRyYW5zZm9ybTp1cHBlcmNhc2U7Y29sb3I6cmdiYSgxNDgsMTYzLDE4NCwuODUpO2Rpc3BsYXk6ZmxleDthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjdweH0KLmRwe2ZvbnQtc2l6ZTo5cHg7Zm9udC13ZWlnaHQ6NzAwO2JhY2tncm91bmQ6cmdiYSgyNDUsMTU4LDExLC4xNSk7Y29sb3I6I2Y1OWUwYjtib3JkZXI6MXB4IHNvbGlkIHJnYmEoMjQ1LDE1OCwxMSwuMjUpO2JvcmRlci1yYWRpdXM6M3B4O3BhZGRpbmc6MXB4IDVweH0KI2hze2Rpc3BsYXk6ZmxleDtnYXA6NXB4fQouc3B7cGFkZGluZzoycHggN3B4O2JvcmRlci1yYWRpdXM6M3B4O2ZvbnQtd2VpZ2h0OjYwMDtmb250LXNpemU6OS41cHh9Ci5zYXtiYWNrZ3JvdW5kOnJnYmEoMjIsMTYzLDc0LC4xNSk7Y29sb3I6IzRhZGU4MDtib3JkZXI6MXB4IHNvbGlkIHJnYmEoMjIsMTYzLDc0LC4yNSl9Ci5zZHtiYWNrZ3JvdW5kOnJnYmEoMjIwLDM4LDM4LC4xNSk7Y29sb3I6I2Y4NzE3MTtib3JkZXI6MXB4IHNvbGlkIHJnYmEoMjIwLDM4LDM4LC4yNSl9Ci5zdHtiYWNrZ3JvdW5kOnJnYmEoOTksMTAyLDI0MSwuMTUpO2NvbG9yOiNhNWI0ZmM7Ym9yZGVyOjFweCBzb2xpZCByZ2JhKDk5LDEwMiwyNDEsLjI1KX0KI2xheXtkaXNwbGF5OmZsZXh9CiN0cHtmbGV4OjE7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9uOmNvbHVtbjtib3JkZXItcmlnaHQ6MXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4wNyl9CiNjaHtkaXNwbGF5OmdyaWQ7Z3JpZC10ZW1wbGF0ZS1jb2x1bW5zOjU1cHggMWZyIDM2cHggODBweCA1OHB4IDcycHggOTZweDtwYWRkaW5nOjAgMTBweDtoZWlnaHQ6MjZweDthbGlnbi1pdGVtczpjZW50ZXI7YmFja2dyb3VuZDojMDYwNzEwO2JvcmRlci1ib3R0b206MXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsLjA1KTtmbGV4LXNocmluazowO2ZvbnQtc2l6ZTo5cHg7Zm9udC13ZWlnaHQ6NjAwO2xldHRlci1zcGFjaW5nOi4wOGVtO3RleHQtdHJhbnNmb3JtOnVwcGVyY2FzZTtjb2xvcjpyZ2JhKDEwMCwxMTYsMTM5LC43NSl9CiN0YntmbGV4OjF9Ci5yb3d7ZGlzcGxheTpncmlkO2dyaWQtdGVtcGxhdGUtY29sdW1uczo1NXB4IDFmciAzNnB4IDgwcHggNThweCA3MnB4IDk2cHg7cGFkZGluZzowIDEwcHg7aGVpZ2h0OjQycHg7YWxpZ24taXRlbXM6Y2VudGVyO2N1cnNvcjpwb2ludGVyO2JvcmRlci1ib3R0b206MXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsLjA0KTtib3JkZXItbGVmdDoycHggc29saWQgdHJhbnNwYXJlbnR9Ci5yb3c6aG92ZXJ7YmFja2dyb3VuZDpyZ2JhKDk5LDEwMiwyNDEsLjA4KX0KLnJvdy5zZWx7YmFja2dyb3VuZDpyZ2JhKDk5LDEwMiwyNDEsLjEyKTtib3JkZXItbGVmdC1jb2xvcjojNjM2NmYxfQoucmVme2ZvbnQtZmFtaWx5Om1vbm9zcGFjZTtmb250LXNpemU6OXB4O2NvbG9yOnJnYmEoMTAwLDExNiwxMzksLjcpfQoubm17Zm9udC13ZWlnaHQ6NjAwO2NvbG9yOiNlMmU4ZjA7Zm9udC1zaXplOjExcHg7d2hpdGUtc3BhY2U6bm93cmFwO292ZXJmbG93OmhpZGRlbjt0ZXh0LW92ZXJmbG93OmVsbGlwc2lzfQouamJ7Zm9udC1zaXplOjlweDtjb2xvcjojNDc1NTY5O21hcmdpbi10b3A6MXB4O3doaXRlLXNwYWNlOm5vd3JhcDtvdmVyZmxvdzpoaWRkZW47dGV4dC1vdmVyZmxvdzplbGxpcHNpc30KLnJie2Rpc3BsYXk6aW5saW5lLWZsZXg7YWxpZ24taXRlbXM6Y2VudGVyO2dhcDozcHh9Ci5yZHt3aWR0aDo1cHg7aGVpZ2h0OjVweDtib3JkZXItcmFkaXVzOjUwJX0KLnBpbGx7ZGlzcGxheTppbmxpbmUtZmxleDthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjRweDtwYWRkaW5nOjJweCA2cHg7Ym9yZGVyLXJhZGl1czozcHg7Zm9udC1zaXplOjlweDtmb250LXdlaWdodDo3MDB9Ci5va3tiYWNrZ3JvdW5kOnJnYmEoMjIsMTYzLDc0LC4xMik7Y29sb3I6IzRhZGU4MDtib3JkZXI6MXB4IHNvbGlkIHJnYmEoMjIsMTYzLDc0LC4yMil9Ci5ub3tiYWNrZ3JvdW5kOnJnYmEoMjIwLDM4LDM4LC4xMik7Y29sb3I6I2Y4NzE3MTtib3JkZXI6MXB4IHNvbGlkIHJnYmEoMjIwLDM4LDM4LC4yMil9CiNkcHt3aWR0aDozMDBweDtmbGV4LXNocmluazowO3BhZGRpbmc6MTFweCAxM3B4O2JhY2tncm91bmQ6IzA0MDUwOH0KLnBoe2Rpc3BsYXk6ZmxleDtmbGV4LWRpcmVjdGlvbjpjb2x1bW47YWxpZ24taXRlbXM6Y2VudGVyO2p1c3RpZnktY29udGVudDpjZW50ZXI7bWluLWhlaWdodDozMDBweDtjb2xvcjojMzM0MTU1O2ZvbnQtc2l6ZToxMXB4O3RleHQtYWxpZ246Y2VudGVyO2dhcDo2cHh9Ci5kbntmb250LXNpemU6MTNweDtmb250LXdlaWdodDo3MDA7Y29sb3I6I2UyZThmMDttYXJnaW4tYm90dG9tOjFweH0KLmRte2ZvbnQtc2l6ZTo5LjVweDtjb2xvcjojNDc1NTY5O21hcmdpbi1ib3R0b206NnB4fQouZHNie2Rpc3BsYXk6ZmxleDthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjhweDtwYWRkaW5nOjZweCA5cHg7Ym9yZGVyLXJhZGl1czo0cHg7bWFyZ2luLWJvdHRvbTo1cHh9Ci5zbHtmb250LXNpemU6OC41cHg7Zm9udC13ZWlnaHQ6NzAwO2xldHRlci1zcGFjaW5nOi4xZW07dGV4dC10cmFuc2Zvcm06dXBwZXJjYXNlO2NvbG9yOiM0NzU1Njk7bWFyZ2luOjdweCAwIDNweH0KLmZpe2ZvbnQtc2l6ZToxMHB4O2NvbG9yOiM2NDc0OGI7bGluZS1oZWlnaHQ6MS42NTtwYWRkaW5nOjFweCAwIDFweCAxMHB4O3Bvc2l0aW9uOnJlbGF0aXZlfQouZmk6OmJlZm9yZXtjb250ZW50OidcMjAzYSc7cG9zaXRpb246YWJzb2x1dGU7bGVmdDowO2NvbG9yOiM0ZjQ2ZTU7Zm9udC13ZWlnaHQ6NzAwfQoubmJ7YmFja2dyb3VuZDojMDQwNTA4O2JvcmRlcjoxcHggc29saWQgcmdiYSgyNTUsMjU1LDI1NSwuMDcpO2JvcmRlci1yYWRpdXM6NHB4O3BhZGRpbmc6OHB4IDEwcHg7Zm9udC1zaXplOjEwcHg7bGluZS1oZWlnaHQ6MS43O2NvbG9yOiM2NDc0OGI7bWFyZ2luLXRvcDozcHg7d2hpdGUtc3BhY2U6cHJlLXdyYXB9Ci5hYntiYWNrZ3JvdW5kOnJnYmEoMjIsMTYzLDc0LC4wNyk7Ym9yZGVyOjFweCBzb2xpZCByZ2JhKDIyLDE2Myw3NCwuMTUpO2JvcmRlci1yYWRpdXM6NHB4O3BhZGRpbmc6OHB4IDEwcHg7Zm9udC1zaXplOjEwcHg7bGluZS1oZWlnaHQ6MS42O2NvbG9yOiM0YWRlODA7bWFyZ2luLXRvcDozcHh9Ci5rdntkaXNwbGF5OmdyaWQ7Z3JpZC10ZW1wbGF0ZS1jb2x1bW5zOjFmciAxZnI7Z2FwOjJweCA2cHg7bWFyZ2luLWJvdHRvbTo1cHh9Ci5rdml7Zm9udC1zaXplOjkuNXB4O2NvbG9yOiMzMzQxNTV9Lmt2aSBzcGFue2NvbG9yOiM2NDc0OGJ9Ci5ybXtoZWlnaHQ6M3B4O2JhY2tncm91bmQ6cmdiYSgyNTUsMjU1LDI1NSwuMDgpO2JvcmRlci1yYWRpdXM6MnB4O292ZXJmbG93OmhpZGRlbjttYXJnaW46MnB4IDAgN3B4fQoucmZ7aGVpZ2h0OjEwMCU7Ym9yZGVyLXJhZGl1czoycHh9Cjwvc3R5bGU+PC9oZWFkPjxib2R5Pgo8ZGl2IGlkPSJ3cmFwIj4KPGRpdiBpZD0iaGRyIj48ZGl2IGlkPSJodCI+JiM5NjcyOyBDcmVkaXQgRGVjaXNpb24gSW50ZWxsaWdlbmNlICZtaWRkb3Q7IEFwcGxpY2FudCBQaXBlbGluZTxzcGFuIGNsYXNzPSJkcCI+REVNTzwvc3Bhbj48L2Rpdj48ZGl2IGlkPSJocyI+PHNwYW4gY2xhc3M9InNwIHNhIiBpZD0ic29rIj48L3NwYW4+PHNwYW4gY2xhc3M9InNwIHNkIiBpZD0ic25vIj48L3NwYW4+PHNwYW4gY2xhc3M9InNwIHN0IiBpZD0ic3RvdCI+PC9zcGFuPjwvZGl2PjwvZGl2Pgo8ZGl2IGlkPSJsYXkiPjxkaXYgaWQ9InRwIj48ZGl2IGlkPSJjaCI+PGRpdj5SZWYuPC9kaXY+PGRpdj5BcHBsaWNhbnQ8L2Rpdj48ZGl2PkFnZTwvZGl2PjxkaXY+QW1vdW50PC9kaXY+PGRpdj5UZXJtPC9kaXY+PGRpdj5SaXNrPC9kaXY+PGRpdj5EZWNpc2lvbjwvZGl2PjwvZGl2PjxkaXYgaWQ9InRiIj48L2Rpdj48L2Rpdj4KPGRpdiBpZD0iZHAiPjxkaXYgY2xhc3M9InBoIj48ZGl2IHN0eWxlPSJmb250LXNpemU6MjJweDtvcGFjaXR5Oi4yIj4mIzk2NzI7PC9kaXY+PGRpdj5Ib3ZlciBvciBjbGljayBhIHJvdzxicj50byB2aWV3IGRldGFpbHM8L2Rpdj48L2Rpdj48L2Rpdj48L2Rpdj48L2Rpdj4KPHNjcmlwdD4KdmFyIGxvY2tlZD1udWxsLE5MPSdcbic7CmZ1bmN0aW9uIHJjKHMpe3JldHVybiBzPDMwPycjNGFkZTgwJzpzPDYwPycjZmI5MjNjJzonI2Y4NzE3MSc7fQp2YXIgQ0JTPSdZb3UgaGF2ZSB0aGUgcmlnaHQgdG8gcmVxdWVzdCBhIGZyZWUgY29weSBvZiB5b3VyIGNyZWRpdCByZXBvcnQgZnJvbSBDcmVkaXQgQnVyZWF1IFNpbmdhcG9yZSAoQ0JTKSB3aXRoaW4gMzAgZGF5cy4nOwp2YXIgTUFTPSdXZSBhcmUgY29tbWl0dGVkIHRvIGZhaXIgbGVuZGluZyBwcmFjdGljZXMgaW4gYWNjb3JkYW5jZSB3aXRoIE1BUyBOb3RpY2Ugb24gRmFpciBEZWFsaW5nLic7CmZ1bmN0aW9uIG1rKGIpe3JldHVybiAnRGVhciBBcHBsaWNhbnQsJytOTCtOTCsnV2UgcmVncmV0IHRvIGluZm9ybSB5b3UgdGhhdCB5b3VyIGNyZWRpdCBhcHBsaWNhdGlvbiBoYXMgYmVlbiBkZWNsaW5lZC4nK05MK05MK2IrTkwrTkwrQ0JTK05MK05MK01BUytOTCtOTCsnU2luY2VyZWx5LCcrTkwrJ0NyZWRpdCBSaXNrIFJldmlldyBUZWFtJytOTCsnQ3JlZGl0IERlY2lzaW9uIEludGVsbGlnZW5jZSc7fQp2YXIgRD1bCntpOicwMScsbjonU2FyYWggVGFuJyxqOidTb2Z0d2FyZSBFbmdpbmVlcicsYTozMixtOidTR0QgMTIsMDAwJyxkOicyNCBtbycscjoxOC4zLGNrOic+PSAyMDAgRE0nLHN2Oic+PSAxLDAwMCBETScsZW06Jz49IDcgeXJzJyxoczonT3duJyxoaTonRXhpc3RpbmcgcGFpZCcsczonQVBQUk9WRUQnLGY6WydMb25nLXRlcm0gZW1wbG95bWVudCBjb25maXJtcyBpbmNvbWUgY29udGludWl0eScsJ1N0cm9uZyBzYXZpbmdzIGJ1ZmZlciBwcm92aWRlcyByZXNpbGllbmNlJywnUG9zaXRpdmUgYWNjb3VudCBoaXN0b3J5IGFjcm9zcyBhbGwgaW5kaWNhdG9ycyddfSwKe2k6JzAyJyxuOidNYXJjdXMgTGVlJyxqOidSZXRpcmVkIEV4ZWN1dGl2ZScsYTo2NyxtOidTR0QgMTUsMDAwJyxkOic2MCBtbycscjo4OS40LGNrOicwLTIwMCBETScsc3Y6JzwgMTAwIERNJyxlbTonPj0gNyB5cnMnLGhzOidPd24nLGhpOidBbGwgcGFpZCcsczonREVDTElORUQnLGY6WydMb2FuIG1hdHVyZXMgYXQgYWdlIDcyLCBzZXZlbiB5ZWFycyBwYXN0IHJldGlyZW1lbnQgdGhyZXNob2xkJywnTWluaW1hbCBzYXZpbmdzIGNhbm5vdCBzdXBwb3J0IGEgNS15ZWFyIG9ibGlnYXRpb24nLCdGaXhlZCBpbmNvbWUgbGltaXRzIHJlcGF5bWVudCBmbGV4aWJpbGl0eSddLG50Om1rKCctIExvYW4gbWF0dXJlcyBzZXZlbiB5ZWFycyBwYXN0IHRoZSByZXRpcmVtZW50IHRocmVzaG9sZC4nK05MKyctIFNhdmluZ3MgYmFsYW5jZSBpcyBpbnN1ZmZpY2llbnQgZm9yIHRoaXMgY29tbWl0bWVudC4nKX0sCntpOicwMycsbjonUHJpeWEgTmFpcicsajonU2Nob29sIFRlYWNoZXInLGE6MjcsbTonU0dEIDYsMDAwJyxkOicyNCBtbycscjozMS43LGNrOicwLTIwMCBETScsc3Y6JzEwMC01MDAgRE0nLGVtOicxLTQgeXJzJyxoczonRm9yIGZyZWUnLGhpOidFeGlzdGluZyBwYWlkJyxzOidBUFBST1ZFRCcsZjpbJ1B1YmxpYy1zZWN0b3IgZW1wbG95bWVudCBwcm92aWRlcyBzdGFibGUgaW5jb21lJywnTW9kZXN0IGFtb3VudCB3aXRoaW4gcmVwYXltZW50IGNhcGFjaXR5JywnQ29uc2lzdGVudCBvbi10aW1lIHJlcGF5bWVudCByZWNvcmQnXX0sCntpOicwNCcsbjonUnlhbiBUZW8nLGo6J01hcmtldGluZyBFeGVjJyxhOjIyLG06J1NHRCA4LDAwMCcsZDonMzYgbW8nLHI6ODQuOSxjazonTm8gYWNjb3VudCcsc3Y6J05vIHNhdmluZ3MnLGVtOic8IDEgeXInLGhzOidSZW50JyxoaTonTm8gY3JlZGl0cycsczonREVDTElORUQnLGY6WydFbXBsb3ltZW50IHVuZGVyIG9uZSB5ZWFyOyBpbmNvbWUgc3RhYmlsaXR5IG5vdCBlc3RhYmxpc2hlZCcsJ05vIGNoZWNraW5nIGFjY291bnQ7IGJlaGF2aW91ciBjYW5ub3QgYmUgYXNzZXNzZWQnLCdObyBzYXZpbmdzIGJ1ZmZlciBhZ2FpbnN0IGRpc3J1cHRpb24nXSxudDptaygnLSBFbXBsb3ltZW50IHVuZGVyIG9uZSB5ZWFyOyBpbmNvbWUgc3RhYmlsaXR5IG5vdCBlc3RhYmxpc2hlZC4nK05MKyctIE5vIGNoZWNraW5nIGFjY291bnQgb24gcmVjb3JkLicrTkwrJy0gU2F2aW5ncyBwcm92aWRlIG5vIGJ1ZmZlci4nKX0sCntpOicwNScsbjonTWljaGVsbGUgT25nJyxqOidIUiBNYW5hZ2VyJyxhOjQ1LG06J1NHRCAxMCwwMDAnLGQ6JzM2IG1vJyxyOjIyLjEsY2s6JzAtMjAwIERNJyxzdjonNTAwLTEsMDAwIERNJyxlbTonNC03IHlycycsaHM6J093bicsaGk6J0V4aXN0aW5nIHBhaWQnLHM6J0FQUFJPVkVEJyxmOlsnUHJvcGVydHkgb3duZXJzaGlwIHByb3ZpZGVzIGFzc2V0IGJhY2tpbmcnLCdNaWQtY2FyZWVyIHRlbnVyZSByZWR1Y2VzIGRpc3J1cHRpb24gcmlzaycsJ0FkZXF1YXRlIHNhdmluZ3MgYnVmZmVyJ119LAp7aTonMDYnLG46J0JlbmphbWluIEtvaCcsajonU2FsZXMgRGlyZWN0b3InLGE6MzgsbTonU0dEIDE4LDAwMCcsZDonNDggbW8nLHI6NzYuMyxjazonPCAwIERNJyxzdjonPCAxMDAgRE0nLGVtOic0LTcgeXJzJyxoczonUmVudCcsaGk6J0RlbGF5ZWQgcHJldmlvdXNseScsczonREVDTElORUQnLGY6WydDaGVja2luZyBhY2NvdW50IG92ZXJkcmF3biAtIGFjdGl2ZSBmaW5hbmNpYWwgZGlzdHJlc3MnLCdQcmV2aW91cyBwYXltZW50IGRlbGF5cyBhcmUgYSBtYXRlcmlhbCByaXNrIHNpZ25hbCcsJ0Ftb3VudCBoaWdoIHJlbGF0aXZlIHRvIGZpbmFuY2lhbCBzdGFuZGluZyddLG50Om1rKCctIENoZWNraW5nIGFjY291bnQgaXMgY3VycmVudGx5IG92ZXJkcmF3bi4nK05MKyctIENyZWRpdCBoaXN0b3J5IHNob3dzIHByZXZpb3VzIHBheW1lbnQgZGVsYXlzLicrTkwrJy0gUmVxdWVzdGVkIGFtb3VudCBpcyBoaWdoIHJlbGF0aXZlIHRvIGFzc2Vzc2VkIHByb2ZpbGUuJyl9LAp7aTonMDcnLG46J0RyLiBBbml0YSBTaW5naCcsajonTWVkaWNhbCBDb25zdWx0YW50JyxhOjUyLG06J1NHRCA1LDAwMCcsZDonMTIgbW8nLHI6MTAuOCxjazonPj0gMjAwIERNJyxzdjonPj0gMSwwMDAgRE0nLGVtOic+PSA3IHlycycsaHM6J093bicsaGk6J0FsbCBwYWlkJyxzOidBUFBST1ZFRCcsZjpbJ0FsbCBwcmlvciBjcmVkaXRzIGZ1bGx5IHNldHRsZWQnLCdTZW5pb3IgcHJvZmVzc2lvbmFsIGF0IGhpZ2hlc3Qgc3RhYmlsaXR5IHRpZXInLCdTaG9ydCAxMi1tb250aCB0ZXJtIG1pbmltaXNlcyBleHBvc3VyZSddfSwKe2k6JzA4JyxuOidLZXZpbiBMaW0nLGo6J0xvZ2lzdGljcyBDb29yZGluYXRvcicsYTozNSxtOidTR0QgOSwwMDAnLGQ6JzMwIG1vJyxyOjY4LjcsY2s6J05vIGFjY291bnQnLHN2Oic8IDEwMCBETScsZW06JzEtNCB5cnMnLGhzOidSZW50JyxoaTonTm8gY3JlZGl0cycsczonREVDTElORUQnLGY6WydObyBhY2NvdW50OyBmaW5hbmNpYWwgaGlzdG9yeSB1bmF2YWlsYWJsZScsJ1NhdmluZ3MgYmVsb3cgdGhyZXNob2xkIGZvciB0aGlzIGNvbW1pdG1lbnQnLCdSZW50YWwgY29zdHMgcmVkdWNlIGRpc3Bvc2FibGUgaW5jb21lJ10sbnQ6bWsoJy0gTm8gY2hlY2tpbmcgYWNjb3VudCBtZWFucyBiZWhhdmlvdXIgY2Fubm90IGJlIGFzc2Vzc2VkLicrTkwrJy0gU2F2aW5ncyBiZWxvdyByZXF1aXJlZCBsZXZlbC4nK05MKyctIFJlbnRhbCBjb3N0cyByZWR1Y2UgZGlzcG9zYWJsZSBpbmNvbWUuJyl9LAp7aTonMDknLG46J0phbWVzIFRhbicsajonQ2l2aWwgU2VydmFudCcsYTo0MCxtOidTR0QgNyw1MDAnLGQ6JzE4IG1vJyxyOjE0LjIsY2s6Jz49IDIwMCBETScsc3Y6JzUwMC0xLDAwMCBETScsZW06Jz49IDcgeXJzJyxoczonT3duJyxoaTonQWxsIHBhaWQnLHM6J0FQUFJPVkVEJyxmOlsnR292ZXJubWVudCBlbXBsb3ltZW50OiBtYXhpbXVtIHN0YWJpbGl0eScsJ1Nob3J0IDE4LW1vbnRoIHRlcm0gbWluaW1pc2VzIHJpc2snLCdTdHJvbmcgY2hlY2tpbmcgYW5kIHNhdmluZ3MgcHJvZmlsZSddfSwKe2k6JzEwJyxuOidNZWkgTGluIENodWEnLGo6J0ZyZWVsYW5jZSBEZXNpZ25lcicsYToyOSxtOidTR0QgMTEsMDAwJyxkOiczNiBtbycscjo3MS41LGNrOic8IDAgRE0nLHN2OicxMDAtNTAwIERNJyxlbTonPCAxIHlyJyxoczonUmVudCcsaGk6J05vIGNyZWRpdHMnLHM6J0RFQ0xJTkVEJyxmOlsnT3ZlcmRyYXduIGFjY291bnQgaW5kaWNhdGVzIGZpbmFuY2lhbCBzdHJlc3MnLCdGcmVlbGFuY2UgdGVudXJlIHVuZGVyIDEgeWVhcjsgaW5jb21lIGlycmVndWxhcicsJ05vIGNyZWRpdCBoaXN0b3J5IGxpbWl0cyByZXBheW1lbnQgYXNzZXNzbWVudCddLG50Om1rKCctIENoZWNraW5nIGFjY291bnQgaXMgb3ZlcmRyYXduLicrTkwrJy0gRnJlZWxhbmNlIHRlbnVyZSB1bmRlciBvbmUgeWVhcjsgaW5jb21lIGNhbm5vdCBiZSByZWxpYWJseSBwcm9qZWN0ZWQuJytOTCsnLSBObyBjcmVkaXQgaGlzdG9yeSBvbiByZWNvcmQuJyl9LAp7aTonMTEnLG46J0RhdmlkIE5nJyxqOidCYW5rIE1hbmFnZXInLGE6NDgsbTonU0dEIDIwLDAwMCcsZDonNDggbW8nLHI6MjkuNCxjazonPj0gMjAwIERNJyxzdjonPj0gMSwwMDAgRE0nLGVtOic+PSA3IHlycycsaHM6J093bicsaGk6J0V4aXN0aW5nIHBhaWQnLHM6J0FQUFJPVkVEJyxmOlsnU2VuaW9yIGZpbmFuY2lhbCBzZWN0b3Igcm9sZSB3aXRoIGxvbmcgdGVudXJlJywnU3Ryb25nIHNhdmluZ3MgcmVsYXRpdmUgdG8gbG9hbiBhbW91bnQnLCdDb25zaXN0ZW50IHJlcGF5bWVudCB0cmFjayByZWNvcmQnXX0sCntpOicxMicsbjonU2l0aSBSYWhpbWFoJyxqOidBZG1pbiBFeGVjdXRpdmUnLGE6MzMsbTonU0dEIDQsNTAwJyxkOicxMiBtbycscjoyNi44LGNrOicwLTIwMCBETScsc3Y6JzEwMC01MDAgRE0nLGVtOic0LTcgeXJzJyxoczonRm9yIGZyZWUnLGhpOidFeGlzdGluZyBwYWlkJyxzOidBUFBST1ZFRCcsZjpbJ1Nob3J0IDEyLW1vbnRoIHRlcm0gcmVkdWNlcyBleHBvc3VyZScsJ0VzdGFibGlzaGVkIGVtcGxveW1lbnQgY29uZmlybXMgc3RhYmlsaXR5JywnT24tdGltZSByZXBheW1lbnQgaGlzdG9yeSddfSwKe2k6JzEzJyxuOidBYXJvbiBZZW8nLGo6J1JpZGUtaGFpbGluZyBEcml2ZXInLGE6NDQsbTonU0dEIDEzLDAwMCcsZDonNDIgbW8nLHI6NzkuMSxjazonTm8gYWNjb3VudCcsc3Y6JzwgMTAwIERNJyxlbTonMS00IHlycycsaHM6J1JlbnQnLGhpOidEZWxheWVkIHByZXZpb3VzbHknLHM6J0RFQ0xJTkVEJyxmOlsnTm8gYWNjb3VudCBwcmV2ZW50cyB0cmFuc2FjdGlvbiBhc3Nlc3NtZW50JywnUHJldmlvdXMgbGF0ZSBwYXltZW50cyBhcmUgc2lnbmlmaWNhbnQnLCdHaWcgaW5jb21lIGlzIHZhcmlhYmxlIG92ZXIgNDIgbW9udGhzJ10sbnQ6bWsoJy0gTm8gY2hlY2tpbmcgYWNjb3VudCBvbiByZWNvcmQuJytOTCsnLSBDcmVkaXQgaGlzdG9yeSBzaG93cyBwcmV2aW91cyBwYXltZW50IGRlbGF5cy4nK05MKyctIEdpZy1lY29ub215IGluY29tZSBpcyBpbmhlcmVudGx5IHZhcmlhYmxlLicpfSwKe2k6JzE0JyxuOidHcmFjZSBXb25nJyxqOidQaGFybWFjaXN0JyxhOjM2LG06J1NHRCA4LDAwMCcsZDonMjQgbW8nLHI6MTYuOSxjazonPj0gMjAwIERNJyxzdjonPj0gMSwwMDAgRE0nLGVtOic0LTcgeXJzJyxoczonT3duJyxoaTonRXhpc3RpbmcgcGFpZCcsczonQVBQUk9WRUQnLGY6WydSZWd1bGF0ZWQgaGVhbHRoY2FyZSBpbmNvbWUgd2l0aCBzdHJvbmcgc3RhYmlsaXR5JywnUHJvcGVydHkgb3duZXJzaGlwIGFkZHMgYXNzZXQgYmFja2luZycsJ0NvbnNpc3RlbnQgcmVwYXltZW50IGhpc3RvcnknXX0sCntpOicxNScsbjonUmF2aSBLdW1hcicsajonQ29uc3RydWN0aW9uIFN1cGVydmlzb3InLGE6NTUsbTonU0dEIDE2LDAwMCcsZDonNjAgbW8nLHI6ODIuNixjazonMC0yMDAgRE0nLHN2Oic8IDEwMCBETScsZW06JzQtNyB5cnMnLGhzOidSZW50JyxoaTonTm8gY3JlZGl0cycsczonREVDTElORUQnLGY6WydMb2FuIG1hdHVyZXMgYXQgYWdlIDYwLCBhcHByb2FjaGluZyBpbmNvbWUgdHJhbnNpdGlvbicsJ01pbmltYWwgc2F2aW5ncyBmb3IgNS15ZWFyIGNvbW1pdG1lbnQnLCdObyBjcmVkaXQgaGlzdG9yeSBsaW1pdHMgYXNzZXNzbWVudCddLG50Om1rKCctIExvYW4gbWF0dXJlcyBhdCBhZ2UgNjAsIGEgcGVyaW9kIG9mIHBvdGVudGlhbCBpbmNvbWUgdHJhbnNpdGlvbi4nK05MKyctIFNhdmluZ3MgaW5zdWZmaWNpZW50IGZvciB0aGlzIGNvbW1pdG1lbnQuJytOTCsnLSBObyBwcmlvciBjcmVkaXQgaGlzdG9yeS4nKX0sCntpOicxNicsbjonTGluZGEgSG8nLGo6J0FjY291bnRhbnQnLGE6MzEsbTonU0dEIDksNTAwJyxkOiczMCBtbycscjoyNC4zLGNrOicwLTIwMCBETScsc3Y6JzUwMC0xLDAwMCBETScsZW06JzQtNyB5cnMnLGhzOidGb3IgZnJlZScsaGk6J0FsbCBwYWlkJyxzOidBUFBST1ZFRCcsZjpbJ0ZpbmFuY2UgcHJvZmVzc2lvbmFsIHdpdGggc3RhYmxlIHByb2ZpbGUnLCdBbGwgY3JlZGl0cyBmdWxseSBzZXR0bGVkJywnTG9hbiBwcm9wb3J0aW9uYXRlIHRvIGZpbmFuY2lhbCBzdGFuZGluZyddfSwKe2k6JzE3JyxuOidBaG1hZCBGYWR6bGknLGo6J0lUIFN5c3RlbXMgTWFuYWdlcicsYTo0MyxtOidTR0QgMTQsMDAwJyxkOiczNiBtbycscjoyMC41LGNrOic+PSAyMDAgRE0nLHN2Oic+PSAxLDAwMCBETScsZW06Jz49IDcgeXJzJyxoczonT3duJyxoaTonRXhpc3RpbmcgcGFpZCcsczonQVBQUk9WRUQnLGY6WydMb25nLXRlbnVyZWQgSVQgcm9sZSB3aXRoIHN0YWJsZSBpbmNvbWUnLCdTdHJvbmcgc2F2aW5ncyBhbmQgY2hlY2tpbmcgYmFsYW5jZScsJ09uLXRpbWUgcmVwYXltZW50IHdpdGggbm8gYWR2ZXJzZSBzaWduYWxzJ119LAp7aTonMTgnLG46J0phc21pbmUgTG9oJyxqOidQYXJ0LXRpbWUgUmV0YWlsJyxhOjI0LG06J1NHRCA2LDUwMCcsZDonMzAgbW8nLHI6NzcuNCxjazonTm8gYWNjb3VudCcsc3Y6JzwgMTAwIERNJyxlbTonPCAxIHlyJyxoczonUmVudCcsaGk6J05vIGNyZWRpdHMnLHM6J0RFQ0xJTkVEJyxmOlsnUGFydC10aW1lIGluY29tZSBpbnN1ZmZpY2llbnQgZm9yIHJlcGF5bWVudCcsJ05vIGFjY291bnQ7IGJlaGF2aW91ciB1bmtub3duJywnTm8gY3JlZGl0IGhpc3RvcnkgYW5kIG1pbmltYWwgc2F2aW5ncyddLG50Om1rKCctIFBhcnQtdGltZSBlbXBsb3ltZW50IGRvZXMgbm90IHByb3ZpZGUgcmVxdWlyZWQgaW5jb21lIHN0YWJpbGl0eS4nK05MKyctIE5vIGNoZWNraW5nIGFjY291bnQgb24gcmVjb3JkLicrTkwrJy0gU2F2aW5ncyBwcm92aWRlIG5vIGJ1ZmZlci4nKX0sCntpOicxOScsbjonUGV0ZXIgQ2hhbicsajonU2VuaW9yIExhd3llcicsYTo0MixtOidTR0QgMjUsMDAwJyxkOic0OCBtbycscjoxMy43LGNrOic+PSAyMDAgRE0nLHN2Oic+PSAxLDAwMCBETScsZW06Jz49IDcgeXJzJyxoczonT3duJyxoaTonQWxsIHBhaWQnLHM6J0FQUFJPVkVEJyxmOlsnTGVnYWwgcHJvZmVzc2lvbmFsIHdpdGggcHJlbWl1bSBzdGFibGUgaW5jb21lJywnRXhjZWxsZW50IHNhdmluZ3MgcmVsYXRpdmUgdG8gbG9hbiBhbW91bnQnLCdGbGF3bGVzcyByZXBheW1lbnQgYWNyb3NzIGFsbCBwcmlvciBjcmVkaXRzJ119LAp7aTonMjAnLG46J051cnVsIEFpc3lhaCcsajonVW5lbXBsb3llZCcsYTozMCxtOidTR0QgNywwMDAnLGQ6JzI0IG1vJyxyOjkzLjEsY2s6J05vIGFjY291bnQnLHN2OidObyBzYXZpbmdzJyxlbTonVW5lbXBsb3llZCcsaHM6J1JlbnQnLGhpOidEZWxheWVkIHByZXZpb3VzbHknLHM6J0RFQ0xJTkVEJyxmOlsnTm8gaW5jb21lOyByZXBheW1lbnQgY2FwYWNpdHkgbm90IGVzdGFibGlzaGVkJywnTm8gYWNjb3VudCBvciBzYXZpbmdzIG9uIHJlY29yZCcsJ1ByZXZpb3VzIGRlbGF5cyBjb21wb3VuZCB0aGUgcmlzayBwcm9maWxlJ10sbnQ6bWsoJy0gTm8gZW1wbG95bWVudCBtZWFucyByZXBheW1lbnQgY2FwYWNpdHkgY2Fubm90IGJlIGFzc2Vzc2VkLicrTkwrJy0gTm8gY2hlY2tpbmcgYWNjb3VudCBvciBzYXZpbmdzIG9uIHJlY29yZC4nK05MKyctIENyZWRpdCBoaXN0b3J5IHNob3dzIHByZXZpb3VzIHBheW1lbnQgZGVsYXlzLicpfSwKe2k6JzIxJyxuOidXZWkgSmllIFRhbicsajonUmVzZWFyY2ggU2NpZW50aXN0JyxhOjM0LG06J1NHRCA4LDUwMCcsZDonMjQgbW8nLHI6MTkuOCxjazonMC0yMDAgRE0nLHN2Oic1MDAtMSwwMDAgRE0nLGVtOic0LTcgeXJzJyxoczonRm9yIGZyZWUnLGhpOidFeGlzdGluZyBwYWlkJyxzOidBUFBST1ZFRCcsZjpbJ1Jlc2VhcmNoIGluc3RpdHV0aW9uIGVtcGxveW1lbnQgaXMgcmVsaWFibGUnLCdNb2Rlc3QgbG9hbiByZWxhdGl2ZSB0byBwcm9mZXNzaW9uYWwgcHJvZmlsZScsJ0NvbnNpc3RlbnQgcmVwYXltZW50IGJlaGF2aW91ciddfQpdOwpmdW5jdGlvbiBidWlsZCgpewp2YXIgb2s9MCxubz0wOwpmb3IodmFyIGk9MDtpPEQubGVuZ3RoO2krKyl7aWYoRFtpXS5zPT09J0FQUFJPVkVEJylvaysrO2Vsc2Ugbm8rKzt9CmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzb2snKS50ZXh0Q29udGVudD0n4pyTICcrb2srJyBBcHByb3ZlZCc7CmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzbm8nKS50ZXh0Q29udGVudD0n4pyVICcrbm8rJyBEZWNsaW5lZCc7CmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzdG90JykudGV4dENvbnRlbnQ9RC5sZW5ndGgrJyBUb3RhbCc7CnZhciBoPScnOwpmb3IodmFyIGk9MDtpPEQubGVuZ3RoO2krKyl7CnZhciBhPURbaV0sYz1yYyhhLnIpLGRlYz0oYS5zPT09J0RFQ0xJTkVEJyk7CmgrPSc8ZGl2IGNsYXNzPSJyb3ciIGRhdGEtaWQ9IicrYS5pKyciIG9ubW91c2VvdmVyPSJob3YodGhpcykiIG9ubW91c2VvdXQ9Im91dCgpIiBvbmNsaWNrPSJwaWNrKHRoaXMpIj4nOwpoKz0nPGRpdiBjbGFzcz0icmVmIj4nK2EuaSsnPC9kaXY+JzsKaCs9JzxkaXYgc3R5bGU9Im92ZXJmbG93OmhpZGRlbiI+PGRpdiBjbGFzcz0ibm0iPicrYS5uKyc8L2Rpdj48ZGl2IGNsYXNzPSJqYiI+JythLmorJzwvZGl2PjwvZGl2Pic7CmgrPSc8ZGl2IHN0eWxlPSJmb250LXNpemU6MTFweDtjb2xvcjojOTRhM2I4Ij4nK2EuYSsnPC9kaXY+JzsKaCs9JzxkaXYgc3R5bGU9ImZvbnQtc2l6ZToxMXB4O2NvbG9yOiM5NGEzYjgiPicrYS5tKyc8L2Rpdj4nOwpoKz0nPGRpdiBzdHlsZT0iZm9udC1zaXplOjExcHg7Y29sb3I6Izk0YTNiOCI+JythLmQrJzwvZGl2Pic7CmgrPSc8ZGl2PjxkaXYgY2xhc3M9InJiIj48ZGl2IGNsYXNzPSJyZCIgc3R5bGU9ImJhY2tncm91bmQ6JytjKyciPjwvZGl2PjxzcGFuIHN0eWxlPSJjb2xvcjonK2MrJztmb250LXNpemU6MTFweDtmb250LXdlaWdodDo3MDAiPicrYS5yLnRvRml4ZWQoMSkrJyU8L3NwYW4+PC9kaXY+PC9kaXY+JzsKaCs9JzxkaXY+PHNwYW4gY2xhc3M9InBpbGwgJysoZGVjPydubyc6J29rJykrJyI+JysoZGVjPyfinJUnOifinJMnKSsnICcrYS5zKyc8L3NwYW4+PC9kaXY+JzsKaCs9JzwvZGl2Pic7fQpkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndGInKS5pbm5lckhUTUw9aDt9CmZ1bmN0aW9uIGRldChpZCl7CnZhciBhPW51bGw7Zm9yKHZhciBpPTA7aTxELmxlbmd0aDtpKyspe2lmKERbaV0uaT09PWlkKXthPURbaV07YnJlYWs7fX1pZighYSlyZXR1cm47CnZhciBkZWM9KGEucz09PSdERUNMSU5FRCcpLGM9cmMoYS5yKTsKdmFyIHNiZz1kZWM/J3JnYmEoMjIwLDM4LDM4LDAuMDgpJzoncmdiYSgyMiwxNjMsNzQsMC4wOCknOwp2YXIgc2JyPWRlYz8ncmdiYSgyMjAsMzgsMzgsMC4xOCknOidyZ2JhKDIyLDE2Myw3NCwwLjE4KSc7CnZhciBzYz1kZWM/JyNmODcxNzEnOicjNGFkZTgwJyxzeW09ZGVjPyfinJUnOifinJMnOwp2YXIgZmg9Jyc7Zm9yKHZhciBqPTA7ajxhLmYubGVuZ3RoO2orKyl7ZmgrPSc8ZGl2IGNsYXNzPSJmaSI+JythLmZbal0rJzwvZGl2Pic7fQp2YXIgaD0nPGRpdiBjbGFzcz0iZG4iPicrYS5uKyc8L2Rpdj4nCisnPGRpdiBjbGFzcz0iZG0iPicrYS5qKycgJm1pZGRvdDsgQWdlICcrYS5hKycgJm1pZGRvdDsgJythLmQrJzwvZGl2PicKKyc8ZGl2IGNsYXNzPSJkc2IiIHN0eWxlPSJiYWNrZ3JvdW5kOicrc2JnKyc7Ym9yZGVyOjFweCBzb2xpZCAnK3NicisnIj4nCisnPHNwYW4gc3R5bGU9ImZvbnQtc2l6ZToxNHB4Ij4nK3N5bSsnPC9zcGFuPicKKyc8ZGl2PjxkaXYgc3R5bGU9ImZvbnQtc2l6ZToxMC41cHg7Zm9udC13ZWlnaHQ6NzAwO2NvbG9yOicrc2MrJztsZXR0ZXItc3BhY2luZzouMDVlbSI+JythLnMrJzwvZGl2PicKKyc8ZGl2IHN0eWxlPSJmb250LXNpemU6OXB4O2NvbG9yOiM0NzU1NjkiPkRlZmF1bHQgcHJvYjogPHN0cm9uZyBzdHlsZT0iY29sb3I6JytjKyciPicrYS5yLnRvRml4ZWQoMSkrJyU8L3N0cm9uZz48L2Rpdj48L2Rpdj48L2Rpdj4nCisnPGRpdiBjbGFzcz0icm0iPjxkaXYgY2xhc3M9InJmIiBzdHlsZT0id2lkdGg6JytNYXRoLm1pbihhLnIsMTAwKSsnJTtiYWNrZ3JvdW5kOicrYysnIj48L2Rpdj48L2Rpdj4nCisnPGRpdiBjbGFzcz0ia3YiPicKKyc8ZGl2IGNsYXNzPSJrdmkiPkNoZWNraW5nIDxzcGFuPicrYS5jaysnPC9zcGFuPjwvZGl2PicKKyc8ZGl2IGNsYXNzPSJrdmkiPlNhdmluZ3MgPHNwYW4+JythLnN2Kyc8L3NwYW4+PC9kaXY+JworJzxkaXYgY2xhc3M9Imt2aSI+RW1wbG95bWVudCA8c3Bhbj4nK2EuZW0rJzwvc3Bhbj48L2Rpdj4nCisnPGRpdiBjbGFzcz0ia3ZpIj5Ib3VzaW5nIDxzcGFuPicrYS5ocysnPC9zcGFuPjwvZGl2PicKKyc8L2Rpdj4nCisnPGRpdiBjbGFzcz0ic2wiPicrKGRlYz8nRGVjbGluZSBGYWN0b3JzJzonQXBwcm92YWwgRmFjdG9ycycpKyc8L2Rpdj4nK2ZoOwppZihkZWMmJmEubnQpe2grPSc8ZGl2IGNsYXNzPSJzbCIgc3R5bGU9Im1hcmdpbi10b3A6N3B4Ij5DcmVkaXQgRGVjaXNpb24gTm90aWNlPC9kaXY+PGRpdiBjbGFzcz0ibmIiPicrYS5udCsnPC9kaXY+Jzt9CmlmKCFkZWMpe2grPSc8ZGl2IGNsYXNzPSJhYiIgc3R5bGU9Im1hcmdpbi10b3A6N3B4Ij48c3Ryb25nPuKckyBBcHBsaWNhdGlvbiBBcHByb3ZlZDwvc3Ryb25nPjxkaXYgc3R5bGU9ImZvbnQtc2l6ZTo5LjVweDtvcGFjaXR5Oi44O21hcmdpbi10b3A6MnB4Ij5ObyBhZHZlcnNlIGFjdGlvbiBub3RpY2UgcmVxdWlyZWQuPC9kaXY+PC9kaXY+Jzt9CmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkcCcpLmlubmVySFRNTD1oO30KZnVuY3Rpb24gaG92KGVsKXtkZXQoZWwuZ2V0QXR0cmlidXRlKCdkYXRhLWlkJykpO30KZnVuY3Rpb24gb3V0KCl7aWYobG9ja2VkKXtkZXQobG9ja2VkKTt9ZWxzZXtkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZHAnKS5pbm5lckhUTUw9JzxkaXYgY2xhc3M9InBoIj48ZGl2IHN0eWxlPSJmb250LXNpemU6MjJweDtvcGFjaXR5Oi4yIj4mIzk2NzI7PC9kaXY+PGRpdj5Ib3ZlciBvciBjbGljayBhIHJvdzxicj50byB2aWV3IGRldGFpbHM8L2Rpdj48L2Rpdj4nO319CmZ1bmN0aW9uIHBpY2soZWwpe2xvY2tlZD1lbC5nZXRBdHRyaWJ1dGUoJ2RhdGEtaWQnKTt2YXIgcm93cz1kb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcucm93Jyk7Zm9yKHZhciBpPTA7aTxyb3dzLmxlbmd0aDtpKyspe3Jvd3NbaV0uY2xhc3NMaXN0LnJlbW92ZSgnc2VsJyk7fWVsLmNsYXNzTGlzdC5hZGQoJ3NlbCcpO2RldChsb2NrZWQpO30KYnVpbGQoKTsKPC9zY3JpcHQ+PC9ib2R5PjwvaHRtbD4=").decode("utf-8")
+components.html(PIPELINE_HTML, height=970, scrolling=False)
