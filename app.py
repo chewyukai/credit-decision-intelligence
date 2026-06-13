@@ -1115,7 +1115,7 @@ if run:
     X_input  = build_input_row(X_train, feature_names, encoders,
                                numeric_vals, cat_vals)
     prob_bad = float(model.predict_proba(X_input)[0][1])
-    decision = "DECLINED" if prob_bad >= 0.5 else "APPROVED"
+    decision = "DECLINED" if prob_bad >= 0.35 else "APPROVED"
 
     sv  = explainer(X_input)
     raw = sv.values[0]
@@ -1423,7 +1423,7 @@ st.markdown("""
       Decision System
     </div>
     <div>
-      · 50% probability threshold is arbitrary — production requires calibrated, risk-appetite-informed cut-offs<br>
+      · 35% probability threshold is arbitary by design for this demo — production requires calibrated, risk-appetite-informed cut-offs<br>
       · Log-odds contributions are simplified estimates; a production model requires full actuarial and regulatory validation<br>
       · Applicant inputs are self-reported; production would use verified bureau and transactional data
     </div>
